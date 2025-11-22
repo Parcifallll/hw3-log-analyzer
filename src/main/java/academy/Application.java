@@ -10,12 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import academy.cli.RunCommand;  // Импорт для CLI класса
 import picocli.CommandLine;
-import picocli.CommandLine.Command;
 
-@Command(name = "Application Example", version = "Example 1.0", mixinStandardHelpOptions = true)
-public class Application implements Runnable {
-
+// application entry point
+public class Application {
     private static final String UNDEFINED_PARAMETER = "undefined";
 
     public static void main(String[] args) {
@@ -23,13 +22,8 @@ public class Application implements Runnable {
         debugArgs(Arrays.asList(args));
 
         // Запуск программы
-        int exitCode = new CommandLine(new Application()).execute(args);
+        int exitCode = new CommandLine(new RunCommand()).execute(args);
         System.exit(exitCode);
-    }
-
-    @Override
-    public void run() {
-        // реализуйте логику по парсингу лог-файлов :)
     }
 
     // Note: нужно только для отладки, удалить в случае ненадобности
@@ -55,8 +49,8 @@ public class Application implements Runnable {
                 argsPerParameter.putIfAbsent(currentParameter, new ArrayList<>());
             } else {
                 argsPerParameter
-                        .get(Optional.ofNullable(currentParameter).orElse(UNDEFINED_PARAMETER))
-                        .add(element);
+                    .get(Optional.ofNullable(currentParameter).orElse(UNDEFINED_PARAMETER))
+                    .add(element);
             }
         }
 
@@ -69,12 +63,12 @@ public class Application implements Runnable {
             paths.addAll(argsPerParam.getOrDefault(param, List.of()));
         }
         System.out.printf(
-                "%s: %s%n",
-                description,
-                paths.stream()
-                        .map(it -> it.contains("*")
-                                ? "glob: " + it
-                                : "path: %s, exists: %s".formatted(it, Files.exists(Path.of(it))))
-                        .collect(Collectors.joining(";")));
+            "%s: %s%n",
+            description,
+            paths.stream()
+                .map(it -> it.contains("*")
+                    ? "glob: " + it
+                    : "path: %s, exists: %s".formatted(it, Files.exists(Path.of(it))))
+                .collect(Collectors.joining(";")));
     }
 }
