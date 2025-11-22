@@ -6,7 +6,7 @@ public record Stats(
     List<String> files, // processed files paths
     int totalRequestsCount,
     ResponseSize responseSizeInBytes,
-    List<TopResource> resources, // DESC by count
-    List<CodeCount> responseCodes // DESC by count
+    List<TopResource> resources, // top 10 DESC by count
+    List<CodeCount> responseCodes // top 10 DESC by count
 ) {
 }
