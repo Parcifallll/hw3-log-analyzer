@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 @Command(name = "hw3-log-analyzer", mixinStandardHelpOptions = true, version = "1.0",
-    description = "Analyzes NGINX log files and generates reports")
+    description = "Analyzes log files and generates reports")
 public class RunCommand implements Callable<Integer> {
 
     private static final Logger logger = LogManager.getLogger(RunCommand.class);
@@ -87,7 +87,7 @@ public class RunCommand implements Callable<Integer> {
             // Generate report
             generator.generate(stats, output);
 
-            logger.info("Analysis completed successfully.");
+            logger.info("Analysis completed.");
             return SUCCESS_CODE;
         } catch (InvalidArgumentException e) {
             logger.error("Invalid usage: {}", e.getMessage());

@@ -14,7 +14,8 @@ public class JsonReportGenerator implements ReportGenerator {
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         try {
-            mapper.writeValue(Files.newOutputStream(outputPath), stats);
+            String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(stats);
+            Files.writeString(outputPath, json);
         } catch (IOException e) {
             throw new RuntimeException("Failed to write JSON report: " + outputPath, e);
         }

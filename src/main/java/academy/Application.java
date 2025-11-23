@@ -12,8 +12,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import picocli.CommandLine;
 
-// --path logs/*.log --format markdown --output report.md
-// java -jar target/hw3-logs-1.0.jar --path https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs --format json --output report.md
+/**
+
+ * java -jar target/hw3-logs-1.0.jar --path logs/log1.log,logs/log2.log --format json --output report.json
+* target/hw3-logs-1.0.jar --path logs/*.log --format markdown --output report.md (run in IDEA Configuration)
+* java -jar target/hw3-logs-1.0.jar --path https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs --format json --output report.md
+
+*/
+
 // application entry point
 public class Application {
     private static final String UNDEFINED_PARAMETER = "undefined";

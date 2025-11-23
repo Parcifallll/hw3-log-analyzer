@@ -1,0 +1,38 @@
+{
+  "files" : [ "logs/log1.log", "logs/log2.log" ],
+  "totalRequestsCount" : 51463,
+  "responseSizeInBytes" : {
+    "average" : 659496.6991819366,
+    "max" : 8.6377168E7,
+    "p95" : 1768.0
+  },
+  "resources" : [ {
+    "resource" : "/downloads/product_1",
+    "totalRequestsCount" : 30286
+  }, {
+    "resource" : "/downloads/product_2",
+    "totalRequestsCount" : 21104
+  }, {
+    "resource" : "/downloads/product_3",
+    "totalRequestsCount" : 73
+  } ],
+  "responseCodes" : [ {
+    "code" : 200,
+    "totalResponsesCount" : 4028
+  }, {
+    "code" : 206,
+    "totalResponsesCount" : 186
+  }, {
+    "code" : 304,
+    "totalResponsesCount" : 13331
+  }, {
+    "code" : 403,
+    "totalResponsesCount" : 38
+  }, {
+    "code" : 404,
+    "totalResponsesCount" : 33876
+  }, {
+    "code" : 416,
+    "totalResponsesCount" : 4
+  } ]
+}
