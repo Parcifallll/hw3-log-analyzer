@@ -1,8 +1,8 @@
 package academy.model;
 
 public record ResponseSize(
-        double average,
-        double max,
-        double percentile
+    double average,
+    double max,
+    double p95
 ) {
 }

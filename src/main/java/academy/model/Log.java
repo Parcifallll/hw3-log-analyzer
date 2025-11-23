@@ -2,10 +2,12 @@ package academy.model;
 
 import java.time.LocalDateTime;
 
+// Immutable model for an NGINX log
+
 public record Log(
     LocalDateTime timestamp,
     String resource, // /path
     int status, // HTTP code
-    long bodySent // response size (bytes)
+    long bodyBytesSent // response size (bytes)
 ) {
 }

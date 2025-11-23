@@ -1,40 +1,40 @@
 package academy;
 
+import academy.cli.RunCommand;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import academy.cli.RunCommand;  // Импорт для CLI класса
 import picocli.CommandLine;
 
+// java -jar target/hw3-logs-1.0.jar --path https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs --format json --output report.md
 // application entry point
 public class Application {
     private static final String UNDEFINED_PARAMETER = "undefined";
 
     public static void main(String[] args) {
         // Логирование входных параметров для проверки работоспособности black-box тестов
-        debugArgs(Arrays.asList(args));
-
-        // Запуск программы
+//        debugArgs(Arrays.asList(args));
+//
+//        // Запуск программы
         int exitCode = new CommandLine(new RunCommand()).execute(args);
         System.exit(exitCode);
     }
 
     // Note: нужно только для отладки, удалить в случае ненадобности
-    @Deprecated(forRemoval = true)
-    private static void debugArgs(List<String> args) {
-        var argsPerParam = getArgumentsPerParameter(args);
-        System.out.printf("Входные параметры программы: %s%n", argsPerParam);
-
-        logPaths("Пути к лог-файлам", argsPerParam, "p", "path");
-        logPaths("Пути к отчетам", argsPerParam, "o", "output");
-    }
+//    @Deprecated(forRemoval = true)
+//    private static void debugArgs(List<String> args) {
+//        var argsPerParam = getArgumentsPerParameter(args);
+//        System.out.printf("Входные параметры программы: %s%n", argsPerParam);
+//
+//        logPaths("Пути к лог-файлам", argsPerParam, "p", "path");
+//        logPaths("Пути к отчетам", argsPerParam, "o", "output");
+//    }
 
     private static Map<String, List<String>> getArgumentsPerParameter(List<String> args) {
         var argsPerParameter = new HashMap<String, List<String>>();

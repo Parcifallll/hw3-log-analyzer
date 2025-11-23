@@ -1,0 +1,108 @@
+package academy.cli;
+
+import academy.model.Stats;
+import academy.parser.LogParser;
+import academy.parser.NginxLogParser;
+import academy.reader.LogReader;
+import academy.reader.LogReaderFactory;
+import academy.stats.DateFilter;
+import academy.stats.StatsCollector;
+import academy.output.ReportGenerator;
+import academy.output.ReportGeneratorFactory;
+import academy.validator.ArgumentValidator;
+import academy.validator.InvalidArgumentException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.stream.Stream;
+
+@Command(name = "hw3-log-analyzer", mixinStandardHelpOptions = true, version = "1.0",
+    description = "Analyzes NGINX log files and generates reports")
+public class RunCommand implements Callable<Integer> {
+
+    private static final Logger logger = LogManager.getLogger(RunCommand.class);
+    private static final int SUCCESS_CODE = 0;
+    private static final int UNEXPECTED_ERROR_CODE = 1;
+    private static final int INVALID_USAGE_CODE = 2;
+
+    @Option(names = {"--path", "-p"}, required = true, split = ",", description = "Path(s) to log file(s) or URL(s)")
+    private String[] paths;
+
+    @Option(names = {"--format", "-f"}, required = true, description = "Output format: json or markdown")
+    private String format;
+
+    @Option(names = {"--output", "-o"}, required = true, description = "Output file path")
+    private Path output;
+
+    @Option(names = "--from", description = "Start date (ISO8601: yyyy-MM-dd)")
+    private LocalDate from;
+
+    @Option(names = "--to", description = "End date (ISO8601: yyyy-MM-dd)")
+    private LocalDate to;
+
+    @Override
+    public Integer call() {
+        try {
+            logger.info("Run log analysis");
+
+            ArgumentValidator validator = new ArgumentValidator();
+            validator.validate(this);  // Throws InvalidArgumentException if invalid
+
+            // Prepare components
+            LogParser parser = new NginxLogParser();
+            StatsCollector collector = new StatsCollector();
+            DateFilter filter = new DateFilter(from, to);
+            ReportGenerator generator = ReportGeneratorFactory.create(format);
+
+            // Process each path
+            Stream.of(paths)
+                .flatMap(path -> LogReaderFactory.createReaders(path).stream())
+                .flatMap(LogReader::readLines)
+                .map(parser::parseLine)                    // Parse to Log
+                .filter(log -> log != null)                // Skip invalid
+                .filter(filter::isWithinRange)             // date filter
+                .forEach(collector::collect);              // Collect stats
+
+            // Get stats (files from paths, but resolve to actual if needed)
+            Stats stats = collector.getStats(Arrays.asList(paths));  // Pass original paths as files
+
+            // Generate report
+            generator.generate(stats, output);
+
+            logger.info("Analysis completed successfully.");
+            return SUCCESS_CODE;
+        } catch (InvalidArgumentException e) {
+            logger.error("Invalid usage: {}", e.getMessage());
+            return INVALID_USAGE_CODE;
+        } catch (Exception e) {
+            logger.error("Unexpected error: {}", e.getMessage(), e);
+            return UNEXPECTED_ERROR_CODE;
+        }
+    }
+
+    // getters for validator
+    public String[] getPaths() {
+        return paths;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public Path getOutput() {
+        return output;
+    }
+
+    public LocalDate getFrom() {
+        return from;
+    }
+
+    public LocalDate getTo() {
+        return to;
+    }
+}

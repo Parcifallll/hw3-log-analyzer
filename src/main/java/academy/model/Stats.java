@@ -7,6 +7,6 @@ public record Stats(
     int totalRequestsCount,
     ResponseSize responseSizeInBytes,
     List<TopResource> resources, // top 10 DESC by count
-    List<CodeCount> responseCodes // top 10 DESC by count
+    List<CodeCount> responseCodes // all codes, sorted by code ASC
 ) {
 }

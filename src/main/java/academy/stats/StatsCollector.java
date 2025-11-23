@@ -1,0 +1,59 @@
+package academy.stats;
+
+import academy.model.Log;
+import academy.model.Stats;
+import academy.model.ResponseSize;
+import academy.model.TopResource;
+import academy.model.CodeCount;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+// collects statistics from logs
+public class StatsCollector {
+
+    private final List<Long> sizes = new ArrayList<>();
+    private final Map<String, Integer> resources = new HashMap<>();
+    private final Map<Integer, Integer> codes = new HashMap<>();
+    private long sumSizes = 0;
+
+    public void collect(Log log) {
+        long size = log.bodyBytesSent();
+        sizes.add(size);
+        sumSizes += size;
+
+        resources.merge(log.resource(), 1, Integer::sum);
+        codes.merge(log.status(), 1, Integer::sum);
+    }
+
+    public Stats getStats(List<String> files) {
+        int total = sizes.size();
+        double avg = total > 0 ? (double) sumSizes / total : 0;
+        double max = total > 0 ? sizes.stream().max(Long::compareTo).orElse(0L) : 0;
+        double p95 = total > 0 ? calculateP95(sizes) : 0;
+
+        // top 10 resources DESC by count
+        List<TopResource> topResources = resources.entrySet().stream()
+            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+            .limit(10)
+            .map(e -> new TopResource(e.getKey(), e.getValue()))
+            .collect(Collectors.toList());
+
+        // all response codes ASC by code
+        List<CodeCount> responseCodes = codes.entrySet().stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(e -> new CodeCount(e.getKey(), e.getValue()))
+            .collect(Collectors.toList());
+
+        return new Stats(files, total, new ResponseSize(avg, max, p95), topResources, responseCodes);
+    }
+
+    private double calculateP95(List<Long> sizes) {
+        List<Long> sorted = new ArrayList<>(sizes);
+        sorted.sort(Long::compareTo);
+        int index = (int) Math.ceil(0.95 * sorted.size()) - 1;
+        return sorted.get(index);
+    }
+}
