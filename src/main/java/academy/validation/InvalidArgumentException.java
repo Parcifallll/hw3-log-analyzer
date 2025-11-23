@@ -1,4 +1,4 @@
-package academy.validator;
+package academy.validation;
 
 // trigger exit code 2 for command-line exception
 public class InvalidArgumentException extends RuntimeException {

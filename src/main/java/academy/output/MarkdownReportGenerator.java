@@ -8,41 +8,56 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
+// Generates Markdown report with tables
 public class MarkdownReportGenerator implements ReportGenerator {
 
-    private static final DecimalFormat df = new DecimalFormat("#.##");  // 2 decimal digits
+    private static final DecimalFormat df = new DecimalFormat("#.##");  // 2 decimal places
+    private static final DecimalFormat thousands = new DecimalFormat("#,###");  // with _
+
+    private static final Map<Integer, String> CODE_NAMES = new HashMap<>();
+    static {
+        CODE_NAMES.put(200, "OK");
+        CODE_NAMES.put(304, "Not Modified");
+        CODE_NAMES.put(404, "Not Found");
+        CODE_NAMES.put(500, "Internal Server Error");
+    }
 
     @Override
     public void generate(Stats stats, Path outputPath) {
         StringBuilder md = new StringBuilder();
 
         // General info
-        md.append("# Log Analysis Report\n\n");
-        md.append("## General Statistics\n\n");
-        md.append("Files: ").append(stats.files()).append("\n\n");
-        md.append("Total Requests: ").append(stats.totalRequestsCount()).append("\n\n");
+        md.append("#### Общая информация\n\n");
+        md.append("|        Метрика        |     Значение |\n");
+        md.append("|:---------------------:|-------------:|\n");
+        md.append("|       Файл(-ы)        | `").append(String.join(", ", stats.files())).append("` |\n");
+        md.append("|    Начальная дата     | ").append(stats.from() != null ? stats.from() : "-").append(" |\n");
+        md.append("|     Конечная дата     | ").append(stats.to() != null ? stats.to() : "-").append(" |\n");
+        md.append("|  Количество запросов  | ").append(thousands.format(stats.totalRequestsCount())).append(" |\n");
         ResponseSize size = stats.responseSizeInBytes();
-        md.append("Response Size (bytes):\n");
-        md.append("- Average: ").append(df.format(size.average())).append("\n");
-        md.append("- Max: ").append(df.format(size.max())).append("\n");
-        md.append("- P95: ").append(df.format(size.p95())).append("\n\n");
+        md.append("| Средний размер ответа | ").append(df.format(size.average())).append("b |\n");
+        md.append("|  95p размера ответа   | ").append(df.format(size.p95())).append("b |\n\n");
 
-        // Top resources table
-        md.append("## Top 10 Resources\n\n");
-        md.append("| Resource | Count |\n");
-        md.append("|----------|-------|\n");
+        // top resources table
+        md.append("#### Запрашиваемые ресурсы\n\n");
+        md.append("|     Ресурс      | Количество |\n");
+        md.append("|:---------------:|-----------:|\n");
         for (TopResource tr : stats.resources()) {
-            md.append("| ").append(tr.resource()).append(" | ").append(tr.totalRequestsCount()).append(" |\n");
+            md.append("|  `").append(tr.resource()).append("`  | ").append(thousands.format(tr.totalRequestsCount())).append(" |\n");
         }
         md.append("\n");
 
         // Response codes table
-        md.append("## Response Codes\n\n");
-        md.append("| Code | Count |\n");
-        md.append("|------|-------|\n");
+        md.append("#### Коды ответа\n\n");
+        md.append("| Код |          Имя          | Количество |\n");
+        md.append("|:---:|:---------------------:|-----------:|\n");
         for (CodeCount cc : stats.responseCodes()) {
-            md.append("| ").append(cc.code()).append(" | ").append(cc.totalResponsesCount()).append(" |\n");
+            String name = CODE_NAMES.getOrDefault(cc.code(), "Unknown");
+            md.append("| ").append(cc.code()).append(" | ").append(name).append(" | ").append(thousands.format(cc.totalResponsesCount())).append(" |\n");
         }
 
         try {

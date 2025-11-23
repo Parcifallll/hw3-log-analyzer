@@ -5,6 +5,7 @@ import academy.model.Stats;
 import academy.model.ResponseSize;
 import academy.model.TopResource;
 import academy.model.CodeCount;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,7 @@ public class StatsCollector {
         codes.merge(log.status(), 1, Integer::sum);
     }
 
-    public Stats getStats(List<String> files) {
+    public Stats getStats(List<String> files, LocalDate from, LocalDate to) {
         int total = sizes.size();
         double avg = total > 0 ? (double) sumSizes / total : 0;
         double max = total > 0 ? sizes.stream().max(Long::compareTo).orElse(0L) : 0;
@@ -47,7 +48,7 @@ public class StatsCollector {
             .map(e -> new CodeCount(e.getKey(), e.getValue()))
             .collect(Collectors.toList());
 
-        return new Stats(files, total, new ResponseSize(avg, max, p95), topResources, responseCodes);
+        return new Stats(files, total, new ResponseSize(avg, max, p95), topResources, responseCodes, from, to);
     }
 
     private double calculateP95(List<Long> sizes) {

@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
@@ -22,19 +23,32 @@ public class LogReaderFactory {
             // Remote
             return List.of(new RemoteLogReader(pathStr));
         } else {
-            // Local: single or glob
-            Path path = Path.of(pathStr);
-            if (Files.exists(path) && Files.isRegularFile(path)) {
-                // Single local file
-                return List.of(new LocalLogReader(path));
-            } else {
-                // Glob
+            boolean isGlob = pathStr.contains("*") || pathStr.contains("?") || pathStr.contains("[") || pathStr.contains("{") || pathStr.contains("}");
+
+            if (isGlob) {
+                // Glob pattern
+                // Parse root manually (before wildcard)
+                int lastSlash = pathStr.lastIndexOf('/');
+                Path root;
+                String globPattern = pathStr;
+                if (lastSlash > 0) {
+                    String rootStr = pathStr.substring(0, lastSlash);
+                    try {
+                        root = Path.of(rootStr);
+                    } catch (InvalidPathException e) {
+                        throw new RuntimeException("Invalid glob root: " + rootStr, e);
+                    }
+                    globPattern = pathStr.substring(lastSlash + 1);  // Only the glob part
+                } else {
+                    root = Path.of(".");
+                }
+
                 try {
-                    PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pathStr);
+                    PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + globPattern);
                     List<LogReader> readers = new ArrayList<>();
-                    try (Stream<Path> walk = Files.walk(Path.of("."))) {
+                    try (Stream<Path> walk = Files.walk(root)) {
                         walk.filter(Files::isRegularFile)
-                            .filter(matcher::matches)
+                            .filter(p -> matcher.matches(p.getFileName()))  // Match file name only
                             .forEach(p -> readers.add(new LocalLogReader(p)));
                     }
                     if (readers.isEmpty()) {
@@ -45,6 +59,18 @@ public class LogReaderFactory {
                     logger.error("Error processing glob: {}", pathStr, e);
                     throw new RuntimeException("Failed to process glob: " + pathStr, e);
                 }
+            } else {
+                // Single local file
+                Path path;
+                try {
+                    path = Path.of(pathStr);
+                } catch (InvalidPathException e) {
+                    throw new RuntimeException("Invalid path: " + pathStr, e);
+                }
+                if (!Files.exists(path) || !Files.isRegularFile(path)) {
+                    throw new RuntimeException("File not found: " + pathStr);
+                }
+                return List.of(new LocalLogReader(path));
             }
         }
     }

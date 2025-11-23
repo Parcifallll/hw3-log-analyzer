@@ -14,7 +14,7 @@ public class NginxLogParser implements LogParser {
 
     private static final Logger logger = LogManager.getLogger(NginxLogParser.class);
 
-    // Regex to match the log format
+    // match the log format
     private static final Pattern LOG_PATTERN = Pattern.compile(
         "^(\\S+) - (\\S+) \\[(.+?)\\] \"(.+?)\" (\\d+) (\\d+) \"(.+?)\" \"(.+?)\"$"
     );
@@ -25,15 +25,15 @@ public class NginxLogParser implements LogParser {
     );
 
     @Override
-    public Log parseLine(String line) {
+    public Log parseLine(String line, String fileName, int lineNum) {
         if (line == null || line.isEmpty()) {
-            logger.warn("Empty log line skipped");
+            logger.warn("<{}: {} line>: Empty log line skipped", fileName, lineNum);
             return null;
         }
 
         Matcher matcher = LOG_PATTERN.matcher(line);
         if (!matcher.matches()) {
-            logger.warn("Invalid log format: {}", line);
+            logger.warn("<{}: {} line>: Invalid log format: \"{}\"", fileName, lineNum, line);
             return null;
         }
 
@@ -44,18 +44,19 @@ public class NginxLogParser implements LogParser {
             int status = Integer.parseInt(matcher.group(5));
             long bodyBytesSent = Long.parseLong(matcher.group(6));
 
+            // Parse timestamp
             LocalDateTime timestamp = LocalDateTime.parse(timeLocalStr, DATE_FORMATTER);
 
-            // Parse resource from request: "GET /path HTTP/1.1" -> "/path"
+            // Parse resource from request
             String resource = extractResource(request);
             if (resource == null) {
-                logger.warn("Invalid request format in line: {}", line);
+                logger.warn("<{}: {} line>: Invalid request format in line: {}", fileName, lineNum, line);
                 return null;
             }
 
             return new Log(timestamp, resource, status, bodyBytesSent);
         } catch (NumberFormatException | DateTimeParseException e) {
-            logger.warn("Parsing error in line: {} - {}", line, e.getMessage());
+            logger.warn("<{}: {} line>: Parsing error in line: {} - {}", fileName, lineNum, line, e.getMessage());
             return null;
         }
     }

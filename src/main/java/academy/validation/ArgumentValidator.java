@@ -1,4 +1,4 @@
-package academy.validator;
+package academy.validation;
 
 import academy.cli.RunCommand;
 import java.io.IOException;
@@ -72,28 +72,43 @@ public class ArgumentValidator {
     }
 
     private void validateLocalPath(String pathStr) {
-        Path path;
-        try {
-            path = Path.of(pathStr);
-        } catch (InvalidPathException e) {
-            throw new InvalidArgumentException("Invalid Windows path: " + pathStr, e);
-        }
-
-        boolean isGlob = pathStr.contains("*") || pathStr.contains("?") || pathStr.contains("[");  // glob pattern
+        boolean isGlob = pathStr.contains("*");
 
         if (isGlob) {
+            // glob pattern
+            // parse root manually
+            int lastSlash = pathStr.lastIndexOf('/');
+            Path root;
+            String globPattern = pathStr;
+            if (lastSlash > 0) {
+                String rootStr = pathStr.substring(0, lastSlash);
+                try {
+                    root = Path.of(rootStr);
+                } catch (InvalidPathException e) {
+                    throw new InvalidArgumentException("Invalid glob root: " + rootStr, e);
+                }
+                globPattern = pathStr.substring(lastSlash + 1);  // only the glob part
+            } else {
+                root = Path.of(".");
+            }
+
             try {
-                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pathStr);
-                Path root = path.getParent() != null ? path.getParent() : Path.of(".");  // go from parent for absolute globs
-                boolean hasMatches = Files.walk(root).anyMatch(p -> matcher.matches(p) && hasExtension(p.toString()));
+                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + globPattern);
+                boolean hasMatches = Files.walk(root).anyMatch(p -> matcher.matches(p.getFileName()) && hasExtension(p.toString()));
                 if (!hasMatches) {
                     throw new InvalidArgumentException("No matching files found for glob: " + pathStr);
                 }
             } catch (IOException e) {
-                throw new InvalidArgumentException("Error checking local path: " + pathStr, e);
+                throw new InvalidArgumentException("Error checking glob path: " + pathStr, e);
             }
         } else {
             // Single file
+            Path path;
+            try {
+                path = Path.of(pathStr);
+            } catch (InvalidPathException e) {
+                throw new InvalidArgumentException("Invalid path: " + pathStr, e);
+            }
             if (!Files.exists(path) || !Files.isRegularFile(path)) {
                 throw new InvalidArgumentException("File not found: " + pathStr);
             }
@@ -101,7 +116,6 @@ public class ArgumentValidator {
                 throw new InvalidArgumentException("Unsupported file format: " + pathStr);
             }
         }
-
     }
 
     private boolean hasExtension(String path) {

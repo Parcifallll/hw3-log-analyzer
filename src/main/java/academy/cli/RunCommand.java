@@ -3,14 +3,15 @@ package academy.cli;
 import academy.model.Stats;
 import academy.parser.LogParser;
 import academy.parser.NginxLogParser;
+import academy.reader.LocalLogReader;
 import academy.reader.LogReader;
 import academy.reader.LogReaderFactory;
 import academy.stats.DateFilter;
 import academy.stats.StatsCollector;
 import academy.output.ReportGenerator;
 import academy.output.ReportGeneratorFactory;
-import academy.validator.ArgumentValidator;
-import academy.validator.InvalidArgumentException;
+import academy.validation.ArgumentValidator;
+import academy.validation.InvalidArgumentException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import picocli.CommandLine.Command;
@@ -18,7 +19,9 @@ import picocli.CommandLine.Option;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 @Command(name = "hw3-log-analyzer", mixinStandardHelpOptions = true, version = "1.0",
@@ -30,19 +33,19 @@ public class RunCommand implements Callable<Integer> {
     private static final int UNEXPECTED_ERROR_CODE = 1;
     private static final int INVALID_USAGE_CODE = 2;
 
-    @Option(names = {"--path", "-p"}, required = true, split = ",", description = "Path(s) to log file(s) or URL(s)")
+    @Option(names = {"--path", "-p"}, required = true, split = ",", description = "Path to log files or URL")
     private String[] paths;
 
-    @Option(names = {"--format", "-f"}, required = true, description = "Output format: json or markdown")
+    @Option(names = {"--format", "-f"}, required = true, description = "Output format")
     private String format;
 
     @Option(names = {"--output", "-o"}, required = true, description = "Output file path")
     private Path output;
 
-    @Option(names = "--from", description = "Start date (ISO8601: yyyy-MM-dd)")
+    @Option(names = "--from", description = "Start date: yyyy-MM-dd")
     private LocalDate from;
 
-    @Option(names = "--to", description = "End date (ISO8601: yyyy-MM-dd)")
+    @Option(names = "--to", description = "End date: yyyy-MM-dd")
     private LocalDate to;
 
     @Override
@@ -61,15 +64,25 @@ public class RunCommand implements Callable<Integer> {
 
             // Process each path
             Stream.of(paths)
-                .flatMap(path -> LogReaderFactory.createReaders(path).stream())
-                .flatMap(LogReader::readLines)
-                .map(parser::parseLine)                    // Parse to Log
-                .filter(log -> log != null)                // Skip invalid
-                .filter(filter::isWithinRange)             // date filter
-                .forEach(collector::collect);              // Collect stats
+                .flatMap(path -> {
+                    List<LogReader> readers = LogReaderFactory.createReaders(path);
+                    return readers.stream().flatMap(reader -> {
+                        String fileName;
+                        if (reader instanceof LocalLogReader) {
+                            fileName = ((LocalLogReader) reader).filePath().getFileName().toString();  // glob/single
+                        } else {
+                            fileName = path.substring(path.lastIndexOf('/') + 1);  // For remote URL, extract filename or "nginx_logs"
+                        }
+                        int[] lineNum = {1};  // Mutable for count (lines)
+                        return reader.readLines().map(line -> parser.parseLine(line, fileName, lineNum[0]++));
+                    });
+                })
+                .filter(log -> log != null)
+                .filter(filter::isWithinRange)
+                .forEach(collector::collect);           // Collect stats
 
             // Get stats (files from paths, but resolve to actual if needed)
-            Stats stats = collector.getStats(Arrays.asList(paths));  // Pass original paths as files
+            Stats stats = collector.getStats(Arrays.asList(paths), from, to);  // Pass original paths as files
 
             // Generate report
             generator.generate(stats, output);
@@ -85,7 +98,7 @@ public class RunCommand implements Callable<Integer> {
         }
     }
 
-    // getters for validator
+    // getters for validation
     public String[] getPaths() {
         return paths;
     }
