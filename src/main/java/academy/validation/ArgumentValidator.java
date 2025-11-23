@@ -129,9 +129,9 @@ public class ArgumentValidator {
     }
 
     private void validateOutput(Path output, String format) {
-        if (Files.exists(output)) {
-            throw new InvalidArgumentException("Output file already exists: " + output);
-        }
+//        if (Files.exists(output)) {
+//            throw new InvalidArgumentException("Output file already exists: " + output);
+//        }
 
         Path parent = output.getParent();
         if (parent != null && !Files.isWritable(parent)) {
