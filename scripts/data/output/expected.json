@@ -33,20 +33,6 @@
       "totalResponsesCount": 14
     }
   ],
-  "requestsPerDate": [
-    {
-      "date": "2015-05-01",
-      "weekday": "Friday",
-      "totalRequestsCount": 1,
-      "totalRequestsPercentage": 0.39
-    },
-    {
-      "date": "2015-05-17",
-      "weekday": "Sunday",
-      "totalRequestsCount": 255,
-      "totalRequestsPercentage": 99.61
-    }
-  ],
   "uniqueProtocols": [
     "HTTP/1.1",
     "HTTP/1.0",
