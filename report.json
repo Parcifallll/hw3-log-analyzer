@@ -1,40 +1,51 @@
 {
-  "files" : [ "logs/log1.log" ],
-  "totalRequestsCount" : 51462,
-  "responseSizeInBytes" : {
-    "average" : 659509.514398974,
-    "max" : 8.6377168E7,
-    "p95" : 1768.0
+  "files": [
+    "logs/log1.log"
+  ],
+  "totalRequestsCount": 51462,
+  "responseSizeInBytes": {
+    "average": 659509.514398974,
+    "max": 8.6377168E7,
+    "p95": 1768.0
   },
-  "resources" : [ {
-    "resource" : "/downloads/product_1",
-    "totalRequestsCount" : 30285
-  }, {
-    "resource" : "/downloads/product_2",
-    "totalRequestsCount" : 21104
-  }, {
-    "resource" : "/downloads/product_3",
-    "totalRequestsCount" : 73
-  } ],
-  "responseCodes" : [ {
-    "code" : 200,
-    "totalResponsesCount" : 4028
-  }, {
-    "code" : 206,
-    "totalResponsesCount" : 186
-  }, {
-    "code" : 304,
-    "totalResponsesCount" : 13330
-  }, {
-    "code" : 403,
-    "totalResponsesCount" : 38
-  }, {
-    "code" : 404,
-    "totalResponsesCount" : 33876
-  }, {
-    "code" : 416,
-    "totalResponsesCount" : 4
-  } ],
-  "from" : [ 2015, 1, 1 ],
-  "to" : [ 2017, 1, 2 ]
+  "resources": [
+    {
+      "resource": "/downloads/product_1",
+      "totalRequestsCount": 30285
+    },
+    {
+      "resource": "/downloads/product_2",
+      "totalRequestsCount": 21104
+    },
+    {
+      "resource": "/downloads/product_3",
+      "totalRequestsCount": 73
+    }
+  ],
+  "responseCodes": [
+    {
+      "code": 200,
+      "totalResponsesCount": 4028
+    },
+    {
+      "code": 206,
+      "totalResponsesCount": 186
+    },
+    {
+      "code": 304,
+      "totalResponsesCount": 13330
+    },
+    {
+      "code": 403,
+      "totalResponsesCount": 38
+    },
+    {
+      "code": 404,
+      "totalResponsesCount": 33876
+    },
+    {
+      "code": 416,
+      "totalResponsesCount": 4
+    }
+  ]
 }
