@@ -66,10 +66,6 @@ public class ArgumentValidator {
             } else if (code >= 400) {
                 throw new InvalidArgumentException("Error accessing remote file (" + code + "): " + urlStr);
             }
-            // Check extension
-            if (!hasExtension(urlStr)) {
-                throw new InvalidArgumentException("Unsupported file format for: " + urlStr);
-            }
         } catch (URISyntaxException | IOException | InterruptedException e) {
             throw new InvalidArgumentException("Invalid remote path: " + urlStr, e);
         }
