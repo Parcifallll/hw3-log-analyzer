@@ -1,6 +1,7 @@
 package academy.validation;
 
 import academy.cli.RunCommand;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -14,7 +15,10 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Set;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +34,7 @@ public class ArgumentValidator {
         validatePaths(command.getPaths());
         validateFormat(command.getFormat());
         validateOutput(command.getOutput(), command.getFormat());
-        validateDates(command.getFrom(), command.getTo());
+        validateDates(command.getFromStr(), command.getToStr(), command);
     }
 
     private void validatePaths(String[] paths) {
@@ -149,9 +153,34 @@ public class ArgumentValidator {
         }
     }
 
-    private void validateDates(LocalDate from, LocalDate to) {
+    // only ISO8601
+    private void validateDates(String fromStr, String toStr, RunCommand command) {
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;  // Strict yyyy-MM-dd
+
+        LocalDate from = null;
+        if (fromStr != null) {
+            try {
+                from = LocalDate.parse(fromStr, formatter);  // Parse and check format
+            } catch (DateTimeParseException e) {
+                throw new InvalidArgumentException("Invalid format for --from: must be yyyy-MM-dd");
+            }
+        }
+
+        LocalDate to = null;
+        if (toStr != null) {
+            try {
+                to = LocalDate.parse(toStr, formatter);  // Parse and check format
+            } catch (DateTimeParseException e) {
+                throw new InvalidArgumentException("Invalid format for --to: must be yyyy-MM-dd");
+            }
+        }
+
         if (from != null && to != null && !from.isBefore(to)) {
             throw new InvalidArgumentException("FROM date must be before TO date: from=" + from + ", to=" + to);
         }
+
+        // Set parsed to command
+        command.setFrom(from);
+        command.setTo(to);
     }
 }

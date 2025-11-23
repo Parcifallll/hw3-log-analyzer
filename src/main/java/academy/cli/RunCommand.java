@@ -43,9 +43,12 @@ public class RunCommand implements Callable<Integer> {
     private Path output;
 
     @Option(names = "--from", description = "Start date: yyyy-MM-dd")
-    private LocalDate from;
+    private String fromStr;
 
     @Option(names = "--to", description = "End date: yyyy-MM-dd")
+    private String toStr;
+
+    private LocalDate from;  // Parsed in validator
     private LocalDate to;
 
     @Override
@@ -117,5 +120,21 @@ public class RunCommand implements Callable<Integer> {
 
     public LocalDate getTo() {
         return to;
+    }
+
+    public String getFromStr() {
+        return fromStr;
+    }
+
+    public String getToStr() {
+        return toStr;
+    }
+
+    public void setFrom(LocalDate parsedFrom) {
+        this.from = parsedFrom;
+    }
+
+    public void setTo(LocalDate parsedTo) {
+        this.to = parsedTo;
     }
 }

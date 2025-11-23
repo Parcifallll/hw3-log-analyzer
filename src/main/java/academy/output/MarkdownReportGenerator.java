@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public class MarkdownReportGenerator implements ReportGenerator {
 
     private static final DecimalFormat df = new DecimalFormat("#.##");  // 2 decimal places
     private static final DecimalFormat thousands = new DecimalFormat("#,###");  // with _
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     private static final Map<Integer, String> CODE_NAMES = new HashMap<>();
     static {
@@ -35,8 +37,8 @@ public class MarkdownReportGenerator implements ReportGenerator {
         md.append("|        Метрика        |     Значение |\n");
         md.append("|:---------------------:|-------------:|\n");
         md.append("|       Файл(-ы)        | `").append(String.join(", ", stats.files())).append("` |\n");
-        md.append("|    Начальная дата     | ").append(stats.from() != null ? stats.from() : "-").append(" |\n");
-        md.append("|     Конечная дата     | ").append(stats.to() != null ? stats.to() : "-").append(" |\n");
+        md.append("|    Начальная дата     | ").append(stats.from() != null ? stats.from().format(dateFormatter) : "-").append(" |\n");
+        md.append("|     Конечная дата     | ").append(stats.to() != null ? stats.to().format(dateFormatter) : "-").append(" |\n");
         md.append("|  Количество запросов  | ").append(thousands.format(stats.totalRequestsCount())).append(" |\n");
         ResponseSize size = stats.responseSizeInBytes();
         md.append("| Средний размер ответа | ").append(df.format(size.average())).append("b |\n");
