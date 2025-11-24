@@ -33,14 +33,9 @@ public class RemoteLogReader implements LogReader {
             if (response.statusCode() != 200) {
                 throw new IOException("Failed to fetch remote file, status: " + response.statusCode());
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()));
-            return reader.lines().onClose(() -> {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    logger.warn("Error closing remote stream", e);
-                }
-            });
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()))) {
+                return reader.lines(); // Stream closes reader on close
+            }
         } catch (URISyntaxException | IOException | InterruptedException e) {
             logger.error("Error reading remote file: {}", url, e);
             throw new RuntimeException("Failed to read remote file: " + url, e);
