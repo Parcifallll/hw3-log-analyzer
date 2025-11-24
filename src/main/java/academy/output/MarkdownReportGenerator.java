@@ -79,6 +79,16 @@ public class MarkdownReportGenerator implements ReportGenerator {
                     .append(" |\n");
         }
 
+        md.append("#### Уникальные протоколы\n\n");
+        if (stats.uniqueProtocols().isEmpty()) {
+            md.append("- Нет данных\n\n");
+        } else {
+            for (String proto : stats.uniqueProtocols()) {
+                md.append("- `").append(proto).append("`\n");
+            }
+            md.append("\n");
+        }
+
         try {
             Files.writeString(outputPath, md.toString());
         } catch (IOException e) {

@@ -1,42 +1,41 @@
 {
-  "files": [
-    "part1.txt",
-    "part2.txt"
-  ],
-  "totalRequestsCount": 256,
-  "responseSizeInBytes": {
-    "average": 206.05,
-    "max": 3318.0,
-    "p95": 382.0
-  },
-  "resources": [
-    {
-      "resource": "/downloads/product_1",
-      "totalRequestsCount": 145
+    "files": [
+        "/tmp/data/input/logs/*.txt"
+    ],
+    "totalRequestsCount": 255,
+    "responseSizeInBytes": {
+        "average": 205.53,
+        "max": 3318.0,
+        "p95": 389.2
     },
-    {
-      "resource": "/downloads/product_2",
-      "totalRequestsCount": 111
-    }
-  ],
-  "responseCodes": [
-    {
-      "code": 304,
-      "totalResponsesCount": 139
-    },
-    {
-      "code": 404,
-      "totalResponsesCount": 103
-    },
-    {
-      "code": 200,
-      "totalResponsesCount": 14
-    }
-  ],
-  "uniqueProtocols": [
-    "HTTP/1.1",
-    "HTTP/1.0",
-    "HTTP/2.1",
-    "grpc"
-  ]
+    "resources": [
+        {
+            "resource": "/downloads/product_1",
+            "totalRequestsCount": 145
+        },
+        {
+            "resource": "/downloads/product_2",
+            "totalRequestsCount": 110
+        }
+    ],
+    "responseCodes": [
+        {
+            "code": 304,
+            "totalResponsesCount": 139
+        },
+        {
+            "code": 404,
+            "totalResponsesCount": 102
+        },
+        {
+            "code": 200,
+            "totalResponsesCount": 14
+        }
+    ],
+    "uniqueProtocols": [
+        "grpc",
+        "HTTP/2.1",
+        "HTTP/1.1",
+        "HTTP/1.0"
+    ]
 }

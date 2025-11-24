@@ -8,8 +8,10 @@ import academy.model.TopResource;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 // collects statistics from logs
@@ -18,10 +20,12 @@ public class StatsCollector {
     private final List<Long> sizes = new ArrayList<>();
     private final Map<String, Integer> resources = new HashMap<>();
     private final Map<Integer, Integer> codes = new HashMap<>();
+    private final Set<String> protocols = new HashSet<>();
     private long sumSizes = 0;
 
     public void collect(Log log) {
         long size = log.bodyBytesSent();
+        protocols.add(log.protocol());
         sizes.add(size);
         sumSizes += size;
 
@@ -48,7 +52,15 @@ public class StatsCollector {
                 .map(e -> new CodeCount(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
 
-        return new Stats(files, total, new ResponseSize(avg, max, p95), topResources, responseCodes, from, to);
+        return new Stats(
+                files,
+                total,
+                new ResponseSize(avg, max, p95),
+                topResources,
+                responseCodes,
+                from,
+                to,
+                Set.copyOf(protocols));
     }
 
     private double calculateP95(List<Long> sizes) {

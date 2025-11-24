@@ -8,5 +8,5 @@ public record Log(
         LocalDateTime timestamp,
         String resource, // /path
         int status, // HTTP code
-        long bodyBytesSent // response size (bytes)
-        ) {}
+        long bodyBytesSent, // response size (bytes)
+        String protocol) {}

@@ -35,7 +35,6 @@ public class NginxLogParser implements LogParser {
         }
 
         try {
-            // Extract groups
             String timeLocalStr = matcher.group(3);
             String request = matcher.group(4);
             int status = Integer.parseInt(matcher.group(5));
@@ -44,25 +43,26 @@ public class NginxLogParser implements LogParser {
             // Parse timestamp
             LocalDateTime timestamp = LocalDateTime.parse(timeLocalStr, DATE_FORMATTER);
 
-            // Parse resource from request
-            String resource = extractResource(request);
-            if (resource == null) {
+            // Parse request: method, resource, protocol
+            String[] requestParts = request.split("\\s+");
+            String resource;
+            String protocol = "UNKNOWN";
+
+            if (requestParts.length >= 2) {
+                resource = requestParts[1];
+                if (requestParts.length >= 3) {
+                    protocol = requestParts[2]; // HTTP/1.1, HTTP/2.0, ...
+                }
+            } else {
                 logger.warn("<{}: {} line>: Invalid request format in line: {}", fileName, lineNum, line);
                 return null;
             }
 
-            return new Log(timestamp, resource, status, bodyBytesSent);
+            return new Log(timestamp, resource, status, bodyBytesSent, protocol);
+
         } catch (NumberFormatException | DateTimeParseException e) {
             logger.warn("<{}: {} line>: Parsing error in line: {} - {}", fileName, lineNum, line, e.getMessage());
             return null;
         }
-    }
-
-    private String extractResource(String request) {
-        String[] parts = request.split(" ");
-        if (parts.length == 3) {
-            return parts[1]; // resource is the 2 part
-        }
-        return null;
     }
 }
