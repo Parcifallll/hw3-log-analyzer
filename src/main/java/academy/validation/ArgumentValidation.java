@@ -18,13 +18,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Set;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 // checks paths, format, output, dates
 public class ArgumentValidation {
 
-    private static final Logger logger = LogManager.getLogger(ArgumentValidation.class);
+    // private static final Logger logger = LogManager.getLogger(ArgumentValidation.class);
 
     private static final Set<String> FORMATS = Set.of("json", "markdown");
     private static final Set<String> EXTENSIONS = Set.of(".log", ".txt");
