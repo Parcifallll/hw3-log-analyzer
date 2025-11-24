@@ -31,9 +31,9 @@ public class StatsCollector {
 
     public Stats getStats(List<String> files, LocalDate from, LocalDate to) {
         int total = sizes.size();
-        double avg = total > 0 ? (double) sumSizes / total : 0;
-        double max = total > 0 ? sizes.stream().max(Long::compareTo).orElse(0L) : 0;
-        double p95 = total > 0 ? calculateP95(sizes) : 0;
+        double avg = total > 0 ? Math.round((double) sumSizes / total * 100.0) / 100.0 : 0;
+        double max = total > 0 ? Math.round(sizes.stream().max(Long::compareTo).orElse(0L) * 100.0) / 100.0 : 0;
+        double p95 = total > 0 ? Math.round(calculateP95(sizes) * 100.0) / 100.0 : 0;
 
         // top 10 resources DESC by count
         List<TopResource> topResources = resources.entrySet().stream()

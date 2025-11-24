@@ -2,7 +2,7 @@
   "files" : [ "logs/log1.txt" ],
   "totalRequestsCount" : 51462,
   "responseSizeInBytes" : {
-    "average" : 659509.51,
+    "average" : 659509.514398974,
     "max" : 8.6377168E7,
     "p95" : 1768.0
   },

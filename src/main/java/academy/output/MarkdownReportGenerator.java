@@ -16,7 +16,6 @@ import java.util.Map;
 // Generates Markdown report with tables
 public class MarkdownReportGenerator implements ReportGenerator {
 
-    private static final DecimalFormat df = new DecimalFormat("#.##");  // 2 decimal places
     private static final DecimalFormat thousands = new DecimalFormat("#,###");  // with _
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -41,8 +40,8 @@ public class MarkdownReportGenerator implements ReportGenerator {
         md.append("|     Конечная дата     | ").append(stats.to() != null ? stats.to().format(dateFormatter) : "-").append(" |\n");
         md.append("|  Количество запросов  | ").append(thousands.format(stats.totalRequestsCount())).append(" |\n");
         ResponseSize size = stats.responseSizeInBytes();
-        md.append("| Средний размер ответа | ").append(df.format(size.average())).append("b |\n");
-        md.append("|  95p размера ответа   | ").append(df.format(size.p95())).append("b |\n\n");
+        md.append("| Средний размер ответа | ").append(size.average()).append("b |\n");
+        md.append("|  95p размера ответа   | ").append(size.p95()).append("b |\n\n");
 
         // top resources table
         md.append("#### Запрашиваемые ресурсы\n\n");
