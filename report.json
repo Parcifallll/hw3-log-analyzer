@@ -17,20 +17,20 @@
     "totalRequestsCount" : 73
   } ],
   "responseCodes" : [ {
+    "code" : 404,
+    "totalResponsesCount" : 33876
+  }, {
+    "code" : 304,
+    "totalResponsesCount" : 13330
+  }, {
     "code" : 200,
     "totalResponsesCount" : 4028
   }, {
     "code" : 206,
     "totalResponsesCount" : 186
   }, {
-    "code" : 304,
-    "totalResponsesCount" : 13330
-  }, {
     "code" : 403,
     "totalResponsesCount" : 38
-  }, {
-    "code" : 404,
-    "totalResponsesCount" : 33876
   }, {
     "code" : 416,
     "totalResponsesCount" : 4

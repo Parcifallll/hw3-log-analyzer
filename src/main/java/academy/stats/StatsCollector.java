@@ -44,7 +44,7 @@ public class StatsCollector {
 
         // all response codes ASC by code
         List<CodeCount> responseCodes = codes.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
+            .sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed())
             .map(e -> new CodeCount(e.getKey(), e.getValue()))
             .collect(Collectors.toList());
 
@@ -52,9 +52,23 @@ public class StatsCollector {
     }
 
     private double calculateP95(List<Long> sizes) {
+        if (sizes.isEmpty()) {
+            return 0;
+        }
+
         List<Long> sorted = new ArrayList<>(sizes);
         sorted.sort(Long::compareTo);
-        int index = (int) Math.ceil(0.95 * sorted.size()) - 1;
-        return sorted.get(index);
+
+        double pos = 95 / 100.0 * (sorted.size() - 1);
+        int idx = (int) pos;
+        double frac = pos - idx;
+
+        if (idx >= sorted.size() - 1) {
+            return sorted.getLast();
+        } else {
+            long lower = sorted.get(idx);
+            long upper = sorted.get(idx + 1);
+            return lower + (upper - lower) * frac;
+        }
     }
 }
