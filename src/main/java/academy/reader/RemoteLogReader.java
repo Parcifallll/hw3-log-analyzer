@@ -1,8 +1,5 @@
 package academy.reader;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +10,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RemoteLogReader implements LogReader {
 
@@ -29,7 +28,8 @@ public class RemoteLogReader implements LogReader {
         try {
             URI uri = new URI(url);
             HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
-            HttpResponse<InputStream> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofInputStream());
+            HttpResponse<InputStream> response =
+                    HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofInputStream());
             if (response.statusCode() != 200) {
                 throw new IOException("Failed to fetch remote file, status: " + response.statusCode());
             }

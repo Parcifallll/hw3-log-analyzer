@@ -13,7 +13,7 @@ public class DateFilter {
 
     public DateFilter(LocalDate from, LocalDate to) {
         this.start = (from != null) ? from.atStartOfDay() : null;
-        this.end = (to != null) ? to.atTime(LocalTime.MAX) : null;  // End of day
+        this.end = (to != null) ? to.atTime(LocalTime.MAX) : null; // End of day
     }
 
     public boolean isWithinRange(Log log) {

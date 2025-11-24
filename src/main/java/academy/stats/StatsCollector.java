@@ -1,10 +1,10 @@
 package academy.stats;
 
-import academy.model.Log;
-import academy.model.Stats;
-import academy.model.ResponseSize;
-import academy.model.TopResource;
 import academy.model.CodeCount;
+import academy.model.Log;
+import academy.model.ResponseSize;
+import academy.model.Stats;
+import academy.model.TopResource;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,16 +37,16 @@ public class StatsCollector {
 
         // top 10 resources DESC by count
         List<TopResource> topResources = resources.entrySet().stream()
-            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-            .limit(10)
-            .map(e -> new TopResource(e.getKey(), e.getValue()))
-            .collect(Collectors.toList());
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(10)
+                .map(e -> new TopResource(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
 
         // all response codes ASC by code
         List<CodeCount> responseCodes = codes.entrySet().stream()
-            .sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed())
-            .map(e -> new CodeCount(e.getKey(), e.getValue()))
-            .collect(Collectors.toList());
+                .sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed())
+                .map(e -> new CodeCount(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
 
         return new Stats(files, total, new ResponseSize(avg, max, p95), topResources, responseCodes, from, to);
     }

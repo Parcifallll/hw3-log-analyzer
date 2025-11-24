@@ -1,28 +1,25 @@
 package academy.parser;
 
 import academy.model.Log;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class NginxLogParser implements LogParser {
 
     private static final Logger logger = LogManager.getLogger(NginxLogParser.class);
 
     // match the log format
-    private static final Pattern LOG_PATTERN = Pattern.compile(
-        "^(\\S+) - (\\S+) \\[(.+?)\\] \"(.+?)\" (\\d+) (\\d+) \"(.+?)\" \"(.+?)\"$"
-    );
+    private static final Pattern LOG_PATTERN =
+            Pattern.compile("^(\\S+) - (\\S+) \\[(.+?)\\] \"(.+?)\" (\\d+) (\\d+) \"(.+?)\" \"(.+?)\"$");
 
-
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(
-        "dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH
-    );
+    private static final DateTimeFormatter DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
 
     @Override
     public Log parseLine(String line, String fileName, int lineNum) {
@@ -64,7 +61,7 @@ public class NginxLogParser implements LogParser {
     private String extractResource(String request) {
         String[] parts = request.split(" ");
         if (parts.length == 3) {
-            return parts[1];  // resource is the 2 part
+            return parts[1]; // resource is the 2 part
         }
         return null;
     }

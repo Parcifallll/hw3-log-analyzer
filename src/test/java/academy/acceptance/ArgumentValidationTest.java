@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class ArgumentValidationTest {
@@ -29,6 +28,7 @@ public class ArgumentValidationTest {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         return reader.lines().collect(Collectors.joining("\n"));
     }
+
     private String getStderr(Process process) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
         return reader.lines().collect(Collectors.joining("\n"));
@@ -37,7 +37,17 @@ public class ArgumentValidationTest {
     @Test
     @DisplayName("На вход передан несуществующий локальный файл")
     void test1() throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "nonexistent.log", "--format", "json", "--output", "report.json").start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        "nonexistent.log",
+                        "--format",
+                        "json",
+                        "--output",
+                        "report.json")
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
@@ -47,7 +57,17 @@ public class ArgumentValidationTest {
     @Test
     @DisplayName("На вход передан несуществующий удаленный файл")
     void test2() throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "https://example.com/nonexistent.log", "--format", "json", "--output", "report.json").start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        "https://example.com/nonexistent.log",
+                        "--format",
+                        "json",
+                        "--output",
+                        "report.json")
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
@@ -59,7 +79,17 @@ public class ArgumentValidationTest {
     @DisplayName("На вход передан файл в неподдерживаемом формате")
     void test3(String extension) throws IOException, InterruptedException {
         Path tempFile = Files.createTempFile("test", extension);
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", tempFile.toString(), "--format", "json", "--output", "report.json").start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        tempFile.toString(),
+                        "--format",
+                        "json",
+                        "--output",
+                        "report.json")
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
@@ -68,22 +98,43 @@ public class ArgumentValidationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"2025.01.01 10:30", "today", "10-31-2025"," ", ""})
+    @ValueSource(strings = {"2025.01.01 10:30", "today", "10-31-2025", " ", ""})
     @DisplayName("На вход переданы невалидные параметры --from / --to - {0}")
     void test4(String from) throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", "json", "--output", "report.json", "--from", from).start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        "logs/log1.log",
+                        "--format",
+                        "json",
+                        "--output",
+                        "report.json",
+                        "--from",
+                        from)
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
         assertTrue(error.contains("Invalid format for --from"));
-
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"txt"})
     @DisplayName("Результаты запрошены в неподдерживаемом формате {0}")
     void test5(String format) throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", format, "--output", "report.txt").start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        "logs/log1.log",
+                        "--format",
+                        format,
+                        "--output",
+                        "report.txt")
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
@@ -94,7 +145,9 @@ public class ArgumentValidationTest {
     @MethodSource("test6ArgumentsSource")
     @DisplayName("По пути в аргументе --output указан файл с некоректным расширением")
     void test6(String format, String output) throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", format, "--output", output).start();
+        Process process = new ProcessBuilder(
+                        "java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", format, "--output", output)
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
@@ -105,7 +158,17 @@ public class ArgumentValidationTest {
     @DisplayName("По пути в аргументе --output уже существует файл")
     void test7() throws IOException, InterruptedException {
         Path tempOutput = Files.createTempFile("report", ".json");
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", "json", "--output", tempOutput.toString()).start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        "logs/log1.log",
+                        "--format",
+                        "json",
+                        "--output",
+                        tempOutput.toString())
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
@@ -117,8 +180,9 @@ public class ArgumentValidationTest {
     @ValueSource(strings = {"--path", "--output", "--format"})
     @DisplayName("На вход не передан обязательный параметр \"{0}\"")
     void test8(String argument) throws IOException, InterruptedException {
-        List<String> args = new ArrayList<>(Arrays.asList("java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", "json", "--output", "report.json"));
-        args.remove(argument);  // Remove one required
+        List<String> args = new ArrayList<>(Arrays.asList(
+                "java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", "json", "--output", "report.json"));
+        args.remove(argument); // Remove one required
         Process process = new ProcessBuilder(args).start();
         process.waitFor();
         assertEquals(2, process.exitValue());
@@ -130,7 +194,18 @@ public class ArgumentValidationTest {
     @ValueSource(strings = {"--input", "--filter"})
     @DisplayName("На вход передан неподдерживаемый параметр \"{0}\"")
     void test9(String argument) throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", "json", "--output", "report.json", argument).start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        "logs/log1.log",
+                        "--format",
+                        "json",
+                        "--output",
+                        "report.json",
+                        argument)
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getStderr(process);
@@ -140,7 +215,21 @@ public class ArgumentValidationTest {
     @Test
     @DisplayName("Значение параметра --from больше, чем значение параметра --to")
     void test10() throws IOException, InterruptedException {
-        Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", "logs/log1.log", "--format", "json", "--output", "report2.json", "--from", "2025-12-01", "--to", "2025-01-01").start();
+        Process process = new ProcessBuilder(
+                        "java",
+                        "-jar",
+                        JAR_PATH,
+                        "--path",
+                        "logs/log1.log",
+                        "--format",
+                        "json",
+                        "--output",
+                        "report2.json",
+                        "--from",
+                        "2025-12-01",
+                        "--to",
+                        "2025-01-01")
+                .start();
         process.waitFor();
         assertEquals(2, process.exitValue());
         String error = getError(process);
@@ -149,9 +238,7 @@ public class ArgumentValidationTest {
     }
 
     private static Stream<Arguments> test6ArgumentsSource() {
-        return Stream.of(
-            Arguments.of("markdown", "./results.txt"),
-            Arguments.of("json", "./results.md"));
-            //Arguments.of("adoc", "./results.ad1"));
+        return Stream.of(Arguments.of("markdown", "./results.txt"), Arguments.of("json", "./results.md"));
+        // Arguments.of("adoc", "./results.ad1"));
     }
 }

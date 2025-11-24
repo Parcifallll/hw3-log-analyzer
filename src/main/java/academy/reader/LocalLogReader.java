@@ -1,12 +1,11 @@
 package academy.reader;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 // Reads lines from local file
 public record LocalLogReader(Path filePath) implements LogReader {
@@ -22,5 +21,4 @@ public record LocalLogReader(Path filePath) implements LogReader {
             throw new RuntimeException("Failed to read local file: " + filePath, e);
         }
     }
-
 }

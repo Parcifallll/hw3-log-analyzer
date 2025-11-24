@@ -1,8 +1,5 @@
 package academy.reader;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -12,6 +9,8 @@ import java.nio.file.PathMatcher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 // Factory for creating LogReader instances
 public class LogReaderFactory {
@@ -23,7 +22,11 @@ public class LogReaderFactory {
             // Remote
             return List.of(new RemoteLogReader(pathStr));
         } else {
-            boolean isGlob = pathStr.contains("*") || pathStr.contains("?") || pathStr.contains("[") || pathStr.contains("{") || pathStr.contains("}");
+            boolean isGlob = pathStr.contains("*")
+                    || pathStr.contains("?")
+                    || pathStr.contains("[")
+                    || pathStr.contains("{")
+                    || pathStr.contains("}");
 
             if (isGlob) {
                 // Glob pattern
@@ -38,7 +41,7 @@ public class LogReaderFactory {
                     } catch (InvalidPathException e) {
                         throw new RuntimeException("Invalid glob root: " + rootStr, e);
                     }
-                    globPattern = pathStr.substring(lastSlash + 1);  // Only the glob part
+                    globPattern = pathStr.substring(lastSlash + 1); // Only the glob part
                 } else {
                     root = Path.of(".");
                 }
@@ -48,8 +51,8 @@ public class LogReaderFactory {
                     List<LogReader> readers = new ArrayList<>();
                     try (Stream<Path> walk = Files.walk(root)) {
                         walk.filter(Files::isRegularFile)
-                            .filter(p -> matcher.matches(p.getFileName()))  // Match file name only
-                            .forEach(p -> readers.add(new LocalLogReader(p)));
+                                .filter(p -> matcher.matches(p.getFileName())) // Match file name only
+                                .forEach(p -> readers.add(new LocalLogReader(p)));
                     }
                     if (readers.isEmpty()) {
                         throw new RuntimeException("No files matched glob: " + pathStr);

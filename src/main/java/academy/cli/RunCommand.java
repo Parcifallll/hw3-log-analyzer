@@ -1,6 +1,8 @@
 package academy.cli;
 
 import academy.model.Stats;
+import academy.output.ReportGenerator;
+import academy.output.ReportGeneratorFactory;
 import academy.parser.LogParser;
 import academy.parser.NginxLogParser;
 import academy.reader.LocalLogReader;
@@ -8,23 +10,24 @@ import academy.reader.LogReader;
 import academy.reader.LogReaderFactory;
 import academy.stats.DateFilter;
 import academy.stats.StatsCollector;
-import academy.output.ReportGenerator;
-import academy.output.ReportGeneratorFactory;
 import academy.validation.ArgumentValidation;
 import academy.validation.InvalidArgumentException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
-@Command(name = "hw3-log-analyzer", mixinStandardHelpOptions = true, version = "1.0",
-    description = "Analyzes log files and generates reports")
+@Command(
+        name = "hw3-log-analyzer",
+        mixinStandardHelpOptions = true,
+        version = "1.0",
+        description = "Analyzes log files and generates reports")
 public class RunCommand implements Callable<Integer> {
 
     private static final Logger logger = LogManager.getLogger(RunCommand.class);
@@ -32,13 +35,23 @@ public class RunCommand implements Callable<Integer> {
     private static final int UNEXPECTED_ERROR_CODE = 1;
     private static final int INVALID_USAGE_CODE = 2;
 
-    @Option(names = {"--path", "-p"}, required = true, split = ",", description = "Path to log files or URL")
+    @Option(
+            names = {"--path", "-p"},
+            required = true,
+            split = ",",
+            description = "Path to log files or URL")
     private String[] paths;
 
-    @Option(names = {"--format", "-f"}, required = true, description = "Output format")
+    @Option(
+            names = {"--format", "-f"},
+            required = true,
+            description = "Output format")
     private String format;
 
-    @Option(names = {"--output", "-o"}, required = true, description = "Output file path")
+    @Option(
+            names = {"--output", "-o"},
+            required = true,
+            description = "Output file path")
     private Path output;
 
     @Option(names = "--from", description = "Start date: yyyy-MM-dd")
@@ -47,7 +60,7 @@ public class RunCommand implements Callable<Integer> {
     @Option(names = "--to", description = "End date: yyyy-MM-dd")
     private String toStr;
 
-    private LocalDate from;  // Parsed in validator
+    private LocalDate from; // Parsed in validator
     private LocalDate to;
 
     @Override
@@ -56,7 +69,7 @@ public class RunCommand implements Callable<Integer> {
             logger.info("Run log analysis");
 
             ArgumentValidation validator = new ArgumentValidation();
-            validator.validate(this);  // Throws InvalidArgumentException if invalid
+            validator.validate(this); // Throws InvalidArgumentException if invalid
 
             // Prepare components
             LogParser parser = new NginxLogParser();
@@ -66,25 +79,29 @@ public class RunCommand implements Callable<Integer> {
 
             // Process each path
             Stream.of(paths)
-                .flatMap(path -> {
-                    List<LogReader> readers = LogReaderFactory.createReaders(path);
-                    return readers.stream().flatMap(reader -> {
-                        String fileName;
-                        if (reader instanceof LocalLogReader) {
-                            fileName = ((LocalLogReader) reader).filePath().getFileName().toString();  // glob/single
-                        } else {
-                            fileName = path.substring(path.lastIndexOf('/') + 1);  // For remote URL, extract filename or "nginx_logs"
-                        }
-                        int[] lineNum = {1};  // Mutable for count (lines)
-                        return reader.readLines().map(line -> parser.parseLine(line, fileName, lineNum[0]++));
-                    });
-                })
-                .filter(log -> log != null)
-                .filter(filter::isWithinRange)
-                .forEach(collector::collect);           // Collect stats
+                    .flatMap(path -> {
+                        List<LogReader> readers = LogReaderFactory.createReaders(path);
+                        return readers.stream().flatMap(reader -> {
+                            String fileName;
+                            if (reader instanceof LocalLogReader) {
+                                fileName = ((LocalLogReader) reader)
+                                        .filePath()
+                                        .getFileName()
+                                        .toString(); // glob/single
+                            } else {
+                                fileName = path.substring(
+                                        path.lastIndexOf('/') + 1); // For remote URL, extract filename or "nginx_logs"
+                            }
+                            int[] lineNum = {1}; // Mutable for count (lines)
+                            return reader.readLines().map(line -> parser.parseLine(line, fileName, lineNum[0]++));
+                        });
+                    })
+                    .filter(log -> log != null)
+                    .filter(filter::isWithinRange)
+                    .forEach(collector::collect); // Collect stats
 
             // Get stats (files from paths, but resolve to actual if needed)
-            Stats stats = collector.getStats(Arrays.asList(paths), from, to);  // Pass original paths as files
+            Stats stats = collector.getStats(Arrays.asList(paths), from, to); // Pass original paths as files
 
             // Generate report
             generator.generate(stats, output);

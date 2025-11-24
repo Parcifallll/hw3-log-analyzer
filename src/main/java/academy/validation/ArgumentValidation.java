@@ -1,7 +1,6 @@
 package academy.validation;
 
 import academy.cli.RunCommand;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -19,7 +18,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Set;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -60,9 +58,11 @@ public class ArgumentValidation {
         try {
             URI uri = new URI(urlStr);
             HttpClient client = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))  // 10 sec timeout
-                .build();
-            HttpRequest request = HttpRequest.newBuilder(uri).method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
+                    .connectTimeout(Duration.ofSeconds(10)) // 10 sec timeout
+                    .build();
+            HttpRequest request = HttpRequest.newBuilder(uri)
+                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                    .build();
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
             int code = response.statusCode();
             if (code == HttpURLConnection.HTTP_NOT_FOUND) {
@@ -73,7 +73,7 @@ public class ArgumentValidation {
         } catch (URISyntaxException | InterruptedException e) {
             throw new InvalidArgumentException("Invalid remote path: " + urlStr, e);
         } catch (IOException e) {
-            throw new InvalidArgumentException("Remote file not found (404): " + urlStr, e);  // For no response/timeout
+            throw new InvalidArgumentException("Remote file not found (404): " + urlStr, e); // For no response/timeout
         }
     }
 
@@ -93,14 +93,15 @@ public class ArgumentValidation {
                 } catch (InvalidPathException e) {
                     throw new InvalidArgumentException("Invalid glob root: " + rootStr, e);
                 }
-                globPattern = pathStr.substring(lastSlash + 1);  // only the glob part
+                globPattern = pathStr.substring(lastSlash + 1); // only the glob part
             } else {
                 root = Path.of(".");
             }
 
             try {
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + globPattern);
-                boolean hasMatches = Files.walk(root).anyMatch(p -> matcher.matches(p.getFileName()) && hasExtension(p.toString()));
+                boolean hasMatches =
+                        Files.walk(root).anyMatch(p -> matcher.matches(p.getFileName()) && hasExtension(p.toString()));
                 if (!hasMatches) {
                     throw new InvalidArgumentException("No matching files found for glob: " + pathStr);
                 }
@@ -144,25 +145,27 @@ public class ArgumentValidation {
             throw new InvalidArgumentException("Output directory not writable: " + parent);
         }
 
-        String expectedExt = switch (format.toLowerCase()) {
-            case "json" -> ".json";
-            case "markdown" -> ".md";
-            default -> throw new IllegalStateException("Unexpected format");
-        };
+        String expectedExt =
+                switch (format.toLowerCase()) {
+                    case "json" -> ".json";
+                    case "markdown" -> ".md";
+                    default -> throw new IllegalStateException("Unexpected format");
+                };
 
         if (!output.toString().endsWith(expectedExt)) {
-            throw new InvalidArgumentException("Output file extension must be " + expectedExt + " for format " + format);
+            throw new InvalidArgumentException(
+                    "Output file extension must be " + expectedExt + " for format " + format);
         }
     }
 
     // only ISO8601
     private void validateDates(String fromStr, String toStr, RunCommand command) {
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;  // Strict yyyy-MM-dd
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE; // Strict yyyy-MM-dd
 
         LocalDate from = null;
         if (fromStr != null) {
             try {
-                from = LocalDate.parse(fromStr, formatter);  // Parse and check format
+                from = LocalDate.parse(fromStr, formatter); // Parse and check format
             } catch (DateTimeParseException e) {
                 throw new InvalidArgumentException("Invalid format for --from: must be yyyy-MM-dd");
             }
@@ -171,7 +174,7 @@ public class ArgumentValidation {
         LocalDate to = null;
         if (toStr != null) {
             try {
-                to = LocalDate.parse(toStr, formatter);  // Parse and check format
+                to = LocalDate.parse(toStr, formatter); // Parse and check format
             } catch (DateTimeParseException e) {
                 throw new InvalidArgumentException("Invalid format for --to: must be yyyy-MM-dd");
             }
