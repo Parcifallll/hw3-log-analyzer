@@ -1,5 +1,6 @@
 package academy.reader;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 public class RemoteLogReader implements LogReader {
 
     private static final Logger logger = LogManager.getLogger(RemoteLogReader.class);
-
     private final String url;
 
     public RemoteLogReader(String url) {
@@ -24,21 +24,44 @@ public class RemoteLogReader implements LogReader {
     }
 
     @Override
+    @SuppressFBWarnings(
+            value = "OS_OPEN_STREAM",
+            justification = "Stream is closed in onClose() handler of returned Stream")
     public Stream<String> readLines() {
         try {
             URI uri = new URI(url);
             HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+
             HttpResponse<InputStream> response =
                     HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofInputStream());
+
             if (response.statusCode() != 200) {
+                closeQuietly(response.body());
                 throw new IOException("Failed to fetch remote file, status: " + response.statusCode());
             }
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()))) {
-                return reader.lines(); // Stream closes reader on close
-            }
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.body()));
+
+            return reader.lines().onClose(() -> {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    logger.warn("Error closing remote stream for {}", url, e);
+                }
+            });
+
         } catch (URISyntaxException | IOException | InterruptedException e) {
             logger.error("Error reading remote file: {}", url, e);
             throw new RuntimeException("Failed to read remote file: " + url, e);
+        }
+    }
+
+    private void closeQuietly(InputStream is) {
+        if (is != null) {
+            try {
+                is.close();
+            } catch (IOException ignored) {
+            }
         }
     }
 }

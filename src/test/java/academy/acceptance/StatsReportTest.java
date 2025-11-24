@@ -3,23 +3,20 @@ package academy.acceptance;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import academy.cli.RunCommand;
 import academy.model.Stats;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
+import picocli.CommandLine;
 
 public class StatsReportTest {
 
-    private static final String JAR_PATH = "target/hw3-logs-1.0.jar";
     private Path tempLog;
     private Path tempOutput;
 
@@ -29,10 +26,10 @@ public class StatsReportTest {
         Files.writeString(
                 tempLog,
                 """
-            93.180.71.3 - - [17/May/2015:08:05:32 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
-            93.180.71.3 - - [17/May/2015:08:05:23 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
-            80.91.33.133 - - [17/May/2015:08:05:24 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.17)"
-            """);
+        93.180.71.3 - - [17/May/2015:08:05:32 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
+        93.180.71.3 - - [17/May/2015:08:05:23 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
+        80.91.33.133 - - [17/May/2015:08:05:24 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.17)"
+        """);
     }
 
     @AfterEach
@@ -41,42 +38,41 @@ public class StatsReportTest {
         Files.deleteIfExists(tempOutput);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"json", "markdown"})
-    @DisplayName("Сохранение статистики в формате {0}")
-    void reportTest(String format) throws IOException, InterruptedException {
-        String ext = "json".equals(format) ? ".json" : ".md";
-        tempOutput = Path.of("rep" + ext);
-        Process process = new ProcessBuilder(
-                        "java",
-                        "-jar",
-                        JAR_PATH,
-                        "--path",
-                        tempLog.toString(),
-                        "--format",
-                        format,
-                        "--output",
-                        tempOutput.toString())
-                .start();
-        process.waitFor();
-        assertEquals(0, process.exitValue());
+    @Test
+    @DisplayName("Сохранение статистики в формате JSON")
+    void jsonTest() throws IOException {
+        tempOutput = Path.of("output.json");
+        String[] args = {
+            "--path", tempLog.toString(),
+            "--format", "json",
+            "--output", tempOutput.toString()
+        };
 
-        if ("json".equals(format)) {
-            ObjectMapper mapper = new ObjectMapper();
-            Stats stats = mapper.readValue(tempOutput.toFile(), Stats.class);
-            assertEquals(3, stats.totalRequestsCount());
-            assertEquals(1, stats.resources().size());
-        } else {
-            String md = Files.readString(tempOutput);
-            System.out.println(md);
-            assertTrue(md.contains("Количество запросов  | 3"));
-            assertTrue(md.contains("Not Modified | 3"));
-        }
+        int exitCode = new CommandLine(new RunCommand()).execute(args);
+        assertEquals(0, exitCode);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Stats stats = mapper.readValue(tempOutput.toFile(), Stats.class);
+        assertEquals(3, stats.totalRequestsCount());
+        assertEquals(1, stats.resources().size());
     }
 
-    private String getError(Process process) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        return reader.lines().collect(Collectors.joining("\n"));
+    @Test
+    @DisplayName("Сохранение статистики в формате MARKDOWN")
+    void markdownTest() throws IOException {
+        tempOutput = Path.of("output.md");
+        String[] args = {
+            "--path", tempLog.toString(),
+            "--format", "markdown",
+            "--output", tempOutput.toString()
+        };
+
+        int exitCode = new CommandLine(new RunCommand()).execute(args);
+        assertEquals(0, exitCode);
+
+        String md = Files.readString(tempOutput);
+        assertTrue(md.contains("Количество запросов  | 3"));
+        assertTrue(md.contains("Not Modified | 3"));
     }
 
     //    @Test
