@@ -1,5 +1,5 @@
 {
-  "files" : [ "logs/log1.txt" ],
+  "files" : [ "logs/log1.log" ],
   "totalRequestsCount" : 51462,
   "responseSizeInBytes" : {
     "average" : 659509.51,

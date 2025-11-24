@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -23,9 +24,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 // checks paths, format, output, dates
-public class ArgumentValidator {
+public class ArgumentValidation {
 
-    private static final Logger logger = LogManager.getLogger(ArgumentValidator.class);
+    private static final Logger logger = LogManager.getLogger(ArgumentValidation.class);
 
     private static final Set<String> FORMATS = Set.of("json", "markdown");
     private static final Set<String> EXTENSIONS = Set.of(".log", ".txt");
@@ -33,8 +34,8 @@ public class ArgumentValidator {
     public void validate(RunCommand command) {
         validatePaths(command.getPaths());
         validateFormat(command.getFormat());
-        validateOutput(command.getOutput(), command.getFormat());
         validateDates(command.getFromStr(), command.getToStr(), command);
+        validateOutput(command.getOutput(), command.getFormat());
     }
 
     private void validatePaths(String[] paths) {
@@ -58,16 +59,21 @@ public class ArgumentValidator {
     private void validateRemotePath(String urlStr) {
         try {
             URI uri = new URI(urlStr);
+            HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))  // 10 sec timeout
+                .build();
             HttpRequest request = HttpRequest.newBuilder(uri).method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
-            HttpResponse<Void> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.discarding());
+            HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
             int code = response.statusCode();
             if (code == HttpURLConnection.HTTP_NOT_FOUND) {
                 throw new InvalidArgumentException("Remote file not found (404): " + urlStr);
             } else if (code >= 400) {
                 throw new InvalidArgumentException("Error accessing remote file (" + code + "): " + urlStr);
             }
-        } catch (URISyntaxException | IOException | InterruptedException e) {
+        } catch (URISyntaxException | InterruptedException e) {
             throw new InvalidArgumentException("Invalid remote path: " + urlStr, e);
+        } catch (IOException e) {
+            throw new InvalidArgumentException("Remote file not found (404): " + urlStr, e);  // For no response/timeout
         }
     }
 
@@ -129,9 +135,9 @@ public class ArgumentValidator {
     }
 
     private void validateOutput(Path output, String format) {
-//        if (Files.exists(output)) {
-//            throw new InvalidArgumentException("Output file already exists: " + output);
-//        }
+        if (Files.exists(output)) {
+            throw new InvalidArgumentException("Output file already exists: " + output);
+        }
 
         Path parent = output.getParent();
         if (parent != null && !Files.isWritable(parent)) {
@@ -172,7 +178,7 @@ public class ArgumentValidator {
         }
 
         if (from != null && to != null && !from.isBefore(to)) {
-            throw new InvalidArgumentException("FROM date must be before TO date: from=" + from + ", to=" + to);
+            throw new InvalidArgumentException("FROM date must be before TO date");
         }
 
         // Set parsed to command

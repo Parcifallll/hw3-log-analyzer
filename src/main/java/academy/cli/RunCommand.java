@@ -10,7 +10,7 @@ import academy.stats.DateFilter;
 import academy.stats.StatsCollector;
 import academy.output.ReportGenerator;
 import academy.output.ReportGeneratorFactory;
-import academy.validation.ArgumentValidator;
+import academy.validation.ArgumentValidation;
 import academy.validation.InvalidArgumentException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,7 +21,6 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 @Command(name = "hw3-log-analyzer", mixinStandardHelpOptions = true, version = "1.0",
@@ -56,7 +55,7 @@ public class RunCommand implements Callable<Integer> {
         try {
             logger.info("Run log analysis");
 
-            ArgumentValidator validator = new ArgumentValidator();
+            ArgumentValidation validator = new ArgumentValidation();
             validator.validate(this);  // Throws InvalidArgumentException if invalid
 
             // Prepare components
