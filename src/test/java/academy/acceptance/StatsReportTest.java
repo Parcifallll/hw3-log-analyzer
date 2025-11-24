@@ -2,9 +2,12 @@ package academy.acceptance;
 
 import academy.model.Stats;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +31,6 @@ public class StatsReportTest {
             93.180.71.3 - - [17/May/2015:08:05:23 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.21)"
             80.91.33.133 - - [17/May/2015:08:05:24 +0000] "GET /downloads/product_1 HTTP/1.1" 304 0 "-" "Debian APT-HTTP/1.3 (0.8.16~exp12ubuntu10.17)"
             """);
-        tempOutput = Path.of("rep.json");
     }
 
     @AfterEach
@@ -42,7 +44,7 @@ public class StatsReportTest {
     @DisplayName("Сохранение статистики в формате {0}")
     void reportTest(String format) throws IOException, InterruptedException {
         String ext = "json".equals(format) ? ".json" : ".md";
-        tempOutput = Files.createTempFile("report", ext);
+        tempOutput = Path.of("rep" + ext);
         Process process = new ProcessBuilder("java", "-jar", JAR_PATH, "--path", tempLog.toString(), "--format", format, "--output", tempOutput.toString()).start();
         process.waitFor();
         assertEquals(0, process.exitValue());
@@ -54,9 +56,16 @@ public class StatsReportTest {
             assertEquals(1, stats.resources().size());
         } else {
             String md = Files.readString(tempOutput);
+            System.out.println(md);
             assertTrue(md.contains("Количество запросов  | 3"));
-            assertTrue(md.contains("OK | 3"));
+            assertTrue(md.contains("Not Modified | 3"));
+
         }
+    }
+
+    private String getError(Process process) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        return reader.lines().collect(Collectors.joining("\n"));
     }
 
 //    @Test
