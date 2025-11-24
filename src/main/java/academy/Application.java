@@ -4,14 +4,17 @@ import academy.cli.RunCommand;
 import picocli.CommandLine;
 
 /**
- * mvn clean package shade:shade -DskipTests java -jar target/hw3-logs-1.0.jar --path logs/log1.log,logs/log2.log
- * --format json --output report.json target/hw3-logs-1.0.jar --path logs/*.log --format markdown --output report.md
- * (run in IDEA Configuration) java -jar target/hw3-logs-1.0.jar --path
- * https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs --format json
- * --output report.json java -jar target/hw3-logs-1.0.jar --path
+ *
+ * java -jar target/hw3-logs-1.0.jar --path logs/log1.log,logs/log2.log --format json --output report.json
+ * target/hw3-logs-1.0.jar --path logs/*.log --format markdown --output report.md
+ * (run in IDEA Configuration)
+ * java -jar target/hw3-logs-1.0.jar --path logs/log1.txt --format json--output report.json java -jar target/hw3-logs-1.0.jar --path
  * https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs,logs/log1.txt
  * --format json --output report.json
  */
+
+// mvn clean package shade:shade -DskipTests
+// java -jar target/hw3-logs-1.0.jar --path logs/log1.log,logs/log2.log --format json --output report.json
 
 // application entry point
 public class Application {
