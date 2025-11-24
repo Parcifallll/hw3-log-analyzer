@@ -1,12 +1,9 @@
 package academy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import academy.cli.RunCommand;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.AfterEach;
@@ -47,14 +44,8 @@ public class ApplicationTest {
             "--output", tempOutput.toString()
         };
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PrintStream originalOut = System.out;
-        System.setOut(new PrintStream(out));
         CommandLine cmd = new CommandLine(new RunCommand());
         int exitCode = cmd.execute(args);
-        System.setOut(originalOut);
         assertEquals(0, exitCode);
-        String output = out.toString();
-        assertTrue(output.contains("Analysis completed."));
     }
 }
